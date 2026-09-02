@@ -1,0 +1,28 @@
+name: Test Release Concurrency
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  fast-job:
+    name: Simulate jobs 1-4
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo "Validation, verification, and merge complete"
+
+  release-job:
+    name: Simulate release job
+    needs: fast-job
+    runs-on: ubuntu-24.04
+    concurrency:
+      group: release-index-update
+      cancel-in-progress: false
+      queue: max
+    steps:
+      - name: Simulate index update
+        run: |
+          echo "Starting release for PR #${{ github.event.pull_request.number }}"
+          echo "Updating index.yaml..."
+          sleep 120
+          echo "Release complete for PR #${{ github.event.pull_request.number }}"
