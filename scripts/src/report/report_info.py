@@ -9,10 +9,19 @@ REPORT_ANNOTATIONS = "annotations"
 REPORT_RESULTS = "results"
 REPORT_DIGESTS = "digests"
 REPORT_METADATA = "metadata"
-SHA_ERROR = "Digest in report did not match report content"
+# chart-verifier emits this phrase in lowercase, as part of a longer
+# "error executing command: ..." line. It is matched case-insensitively so that a
+# casing change upstream doesn't send us down the JSON parsing path below.
+SHA_ERROR = "digest in report did not match report content"
 
 
 def write_error_log(*msg):
+    """Write msg to the errors file and to the console.
+
+    The errors file is rendered verbatim into the PR comment, so only include
+    content that is actionable for the chart submitter. Details that only help a
+    maintainer debugging the workflow belong on the console instead.
+    """
     directory = os.environ.get("WORKFLOW_WORKING_DIRECTORY")
     if directory:
         os.makedirs(directory, exist_ok=True)
@@ -89,20 +98,30 @@ def _get_report_info(
                     ],
                     capture_output=True,
                 )
-            output = out.stdout.decode("utf-8")
+            output = out.stdout
 
-        if SHA_ERROR in output:
+        # The docker SDK and subprocess both hand back bytes. Decode once here so
+        # everything below operates on text. Undecodable bytes are replaced rather
+        # than raising: output that isn't valid UTF-8 isn't valid JSON either, so
+        # it is better to fall through to the error below than to traceback.
+        if isinstance(output, bytes):
+            output = output.decode("utf-8", errors="replace")
+
+        if SHA_ERROR in output.lower():
             msg = f"[ERROR] {SHA_ERROR}"
             write_error_log(msg)
             sys.exit(1)
 
         try:
             report_out = json.loads(output)
-        except BaseException as err:
-            msgs = []
-            msgs.append(f"[ERROR] loading report output: /n{output}")
-            msgs.append(f"[ERROR] exception was: {err=}, {type(err)=}")
-            write_error_log(*msgs)
+        except json.JSONDecodeError as err:
+            # Keep the exception detail on the console only: it is noise to the
+            # chart submitter, who sees whatever write_error_log records.
+            print(f"[ERROR] exception was: {err=}, {type(err)=}")
+            write_error_log(
+                "[ERROR] The chart-verifier report could not be processed.",
+                f"[ERROR] chart-verifier output was:\n{output}",
+            )
             sys.exit(1)
 
     if info_type not in report_out:
