@@ -1,0 +1,10 @@
+chart:
+  name: vault
+  shortDescription: Test chart for issue 539.
+publicPgpKey: null
+providerDelivery: False
+users:
+- githubUsername: aycohen-ai
+vendor:
+  label: hashicorp-539final
+  name: hashicorp-539final
