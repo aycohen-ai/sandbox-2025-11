@@ -202,6 +202,10 @@ jobs:
           path: ${{ env.SUBMISSION_PATH }}
 
       - name: Add 'content-ok' label
+        # TEST HARNESS ONLY (issue #539 verification): this sandbox fork has no
+        # 'content-ok' label, so gh exits non-zero and fails the job before
+        # Result Verification can run. Do not carry this to development.
+        continue-on-error: true
         run: gh pr edit "${PR_NUMBER}" --add-label "content-ok"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -528,6 +532,8 @@ jobs:
         if: ${{ needs.validate-submission.outputs.validate-submission-outcome == 'success' &&
                 contains(fromJSON('["success", "skipped"]'), needs.chart-verifier.outputs.run-verifier-outcome) &&
                 needs.setup.outputs.run_build == 'true' }}
+        # TEST HARNESS ONLY (issue #539 verification): label absent in this fork.
+        continue-on-error: true
         run: gh pr edit "${PR_NUMBER}" --add-label "authorized-request"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
