@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
-    if: true # TEMPORARY: actor guard removed for testing
+    if: github.actor == 'redhat-mercury-bot'
     env:
       SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
       SEGMENT_TEST_WRITE_KEY: ${{ secrets.SEGMENT_TEST_WRITE_KEY }}
