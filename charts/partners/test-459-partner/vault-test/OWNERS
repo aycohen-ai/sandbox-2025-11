@@ -1,0 +1,10 @@
+chart:
+  name: vault-test
+  shortDescription: Test chart for validating fix/459 prfiles changes
+providerDelivery: false
+publicPgpKey: unknown
+users:
+- githubUsername: aycohen-ai
+vendor:
+  label: test-459-partner
+  name: Test 459 Partner
