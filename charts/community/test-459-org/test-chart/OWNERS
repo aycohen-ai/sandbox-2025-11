@@ -1,0 +1,8 @@
+chart:
+  name: test-chart
+  shortDescription: Test chart for validating fix/459 prfiles changes
+publicPgpKey: null
+users: []
+vendor:
+  label: test-459-org
+  name: Test 459 Org
