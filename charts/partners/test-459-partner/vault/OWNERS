@@ -1,6 +1,6 @@
 chart:
   name: vault
-  shortDescription: Test chart for validating fix/459 prfiles changes
+  shortDescription: Test chart for validating fix/459 prfiles changes (mercury_bot test)
 providerDelivery: false
 publicPgpKey: unknown
 users:
