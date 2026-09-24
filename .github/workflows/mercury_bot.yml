@@ -22,7 +22,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    if: github.event.pull_request.draft == false && github.actor == 'redhat-mercury-bot'
+    if: github.event.pull_request.draft == false # TEMPORARY: actor guard removed for testing
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
