@@ -1,5 +1,5 @@
 chart:
-  name: vault-test
+  name: vault
   shortDescription: Test chart for validating fix/459 prfiles changes
 providerDelivery: false
 publicPgpKey: unknown
