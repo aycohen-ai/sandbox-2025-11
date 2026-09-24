@@ -1,0 +1,8 @@
+chart:
+  name: redhat-test-459
+  shortDescription: Test chart for validating fix/459 prfiles changes
+publicPgpKey: null
+users: []
+vendor:
+  label: redhat
+  name: Red Hat
