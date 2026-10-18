@@ -6,6 +6,7 @@ on:
     # The modules that currently provide unit tests
     - 'scripts/src/submission/*'
     - 'scripts/src/report/*'
+    - 'scripts/src/pullrequest/*'
 
 jobs:
   enforce:
@@ -24,4 +25,4 @@ jobs:
         python-version: ${{ steps.setup-python.outputs.python-version }}
     - name: Run pytest
       run: |
-        ./ve1/bin/pytest scripts/src/submission/ scripts/src/report/
+        ./ve1/bin/pytest scripts/src/submission/ scripts/src/report/ scripts/src/pullrequest/
