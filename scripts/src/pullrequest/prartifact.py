@@ -3,7 +3,7 @@ import re
 import sys
 
 import requests
-from github import Github
+from github import Auth, Github
 from github.File import File
 from github.GithubException import GithubException
 from github.PullRequest import PullRequest
@@ -30,12 +30,16 @@ def get_pull_request(api_url: str) -> PullRequest:
     Raises:
         ValueError: if api_url is not a pull request API URL
     """
+    bot_token = os.environ.get("BOT_TOKEN")
+    if not bot_token:
+        print("[ERROR] BOT_TOKEN environment variable is not set")
+        sys.exit(1)
     match = pr_api_url_pattern.match(api_url)
     if not match:
         raise ValueError(f"Not a pull request API URL: {api_url}")
     repository, pr_number = match.groups()
     return (
-        Github(os.environ.get("BOT_TOKEN"))
+        Github(auth=Auth.Token(bot_token), per_page=100)
         .get_repo(repository)
         .get_pull(int(pr_number))
     )
@@ -67,8 +71,12 @@ def get_modified_files(api_url):
         list[str]: List of modified files
     """
     try:
-        return [file.filename for file in get_pr_files(get_pull_request(api_url))]
-    except GithubException as e:
+        return [
+            file.filename
+            for file in get_pr_files(get_pull_request(api_url))
+            if file.filename
+        ]
+    except (GithubException, ValueError) as e:
         print(f"[ERROR] getting pr files: {e}")
         sys.exit(1)
 

@@ -11,6 +11,13 @@ import responses
 
 from pullrequest import prartifact
 
+
+@pytest.fixture(autouse=True)
+def bot_token(monkeypatch):
+    """Provide a BOT_TOKEN so the client never runs anonymously"""
+    monkeypatch.setenv("BOT_TOKEN", "test-token")
+
+
 repo_full_name = "acme/repo"
 # URL the callers hand to the prartifact functions
 pr_api_url = f"https://api.github.com/repos/{repo_full_name}/pulls/1"
@@ -67,8 +74,10 @@ def test_get_modified_files_exits_on_github_error():
     responses.get(pr_wire_url, json=pr_data)
     responses.get(files_wire_url, json={"message": "Not Found"}, status=404)
 
-    with pytest.raises(SystemExit):
+    with pytest.raises(SystemExit) as exc_info:
         prartifact.get_modified_files(pr_api_url)
+
+    assert exc_info.value.code == 1
 
 
 @responses.activate
