@@ -39,7 +39,9 @@ def get_pull_request(api_url: str) -> PullRequest:
         raise ValueError(f"Not a pull request API URL: {api_url}")
     repository, pr_number = match.groups()
     return (
-        Github(auth=Auth.Token(bot_token), per_page=100)
+        # lazy=True resolves the PR from the URL alone, so listing its files
+        # costs a single API request
+        Github(auth=Auth.Token(bot_token), per_page=100, lazy=True)
         .get_repo(repository)
         .get_pull(int(pr_number))
     )

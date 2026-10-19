@@ -430,26 +430,13 @@ scenarios_submission_init = [
 
 
 def mock_pr_files(api_url, filenames):
-    """Mock the GitHub API endpoints queried when listing the files of a PR
+    """Mock the GitHub API endpoint queried when listing the files of a PR
 
     PyGithub rides a plain requests session and addresses api.github.com with
-    an explicit :443 port on the wire, so the mocked endpoints use that wire
-    format. The url fields of the mocked payloads must stay port-less though:
-    PyGithub builds follow-up request URLs from them and checks them against
-    its port-less base URL.
+    an explicit :443 port on the wire, so the mocked endpoint uses that wire
+    format.
     """
-    repo_api_url = api_url.rpartition("/pulls/")[0]
     pr_wire_url = api_url.replace("api.github.com", "api.github.com:443")
-    repo_wire_url = pr_wire_url.rpartition("/pulls/")[0]
-    repo_full_name = repo_wire_url.rpartition("/repos/")[2]
-    responses.get(
-        repo_wire_url,
-        json={"full_name": repo_full_name, "url": repo_api_url},
-    )
-    responses.get(
-        pr_wire_url,
-        json={"number": int(api_url.rpartition("/")[2]), "url": api_url},
-    )
     responses.get(f"{pr_wire_url}/files", json=[{"filename": f} for f in filenames])
 
 
@@ -489,16 +476,9 @@ def test_submission_not_exist():
         "https://api.github.com/repos/openshift-helm-charts/charts/pulls/9999"
     )
 
-    repo_wire_url = "https://api.github.com:443/repos/openshift-helm-charts/charts"
     responses.get(
-        repo_wire_url,
-        json={
-            "full_name": "openshift-helm-charts/charts",
-            "url": "https://api.github.com/repos/openshift-helm-charts/charts",
-        },
-    )
-    responses.get(
-        f"{repo_wire_url}/pulls/9999",
+        "https://api.github.com:443/repos/openshift-helm-charts/charts"
+        "/pulls/9999/files",
         json={"message": "Not Found"},
         status=404,
     )

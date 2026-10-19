@@ -21,22 +21,12 @@ def bot_token(monkeypatch):
 repo_full_name = "acme/repo"
 # URL the callers hand to the prartifact functions
 pr_api_url = f"https://api.github.com/repos/{repo_full_name}/pulls/1"
-# URLs PyGithub actually puts on the wire
-repo_wire_url = f"https://api.github.com:443/repos/{repo_full_name}"
-pr_wire_url = f"{repo_wire_url}/pulls/1"
-files_wire_url = f"{pr_wire_url}/files"
-
-repo_data = {
-    "full_name": repo_full_name,
-    "url": f"https://api.github.com/repos/{repo_full_name}",
-}
-pr_data = {"number": 1, "url": pr_api_url}
+# URL PyGithub actually puts on the wire when listing the PR files
+files_wire_url = f"https://api.github.com:443/repos/{repo_full_name}/pulls/1/files"
 
 
 def mock_pr_files(files):
-    """Mock the GitHub API endpoints queried when listing the files of a PR"""
-    responses.get(repo_wire_url, json=repo_data)
-    responses.get(pr_wire_url, json=pr_data)
+    """Mock the GitHub API endpoint queried when listing the files of a PR"""
     responses.get(files_wire_url, json=files)
 
 
@@ -70,8 +60,6 @@ def test_get_modified_files_returns_all_filenames():
 @responses.activate
 def test_get_modified_files_exits_on_github_error():
     """A GitHub API error fails the run, as before"""
-    responses.get(repo_wire_url, json=repo_data)
-    responses.get(pr_wire_url, json=pr_data)
     responses.get(files_wire_url, json={"message": "Not Found"}, status=404)
 
     with pytest.raises(SystemExit) as exc_info:
@@ -103,21 +91,18 @@ def test_get_pr_files_returns_file_objects_with_status():
 
 
 @responses.activate
-def test_get_pull_request_fetches_repository_and_pull():
+def test_get_pull_request_resolves_without_api_calls():
     """The owner, repository and PR number are extracted from the API URL
 
-    Resolving the PR fetches the repository and the PR itself; its files are
-    only fetched when get_pr_files is called.
+    Resolving the PR is purely local: no request is made until the files are
+    listed, so get_modified_files costs a single API request.
     """
     mock_pr_files([{"filename": "a.yaml", "status": "added"}])
 
     pr = prartifact.get_pull_request(pr_api_url)
 
-    assert [call.request.url.split("?")[0] for call in responses.calls] == [
-        repo_wire_url,
-        pr_wire_url,
-    ]
-    assert pr.url == pr_api_url
+    assert [call.request.url.split("?")[0] for call in responses.calls] == []
+    assert pr.number == 1
 
 
 def test_get_pull_request_rejects_non_api_url():
@@ -129,8 +114,6 @@ def test_get_pull_request_rejects_non_api_url():
 @responses.activate
 def test_get_pr_files_follows_pagination():
     """PRs spanning several pages of files are listed completely"""
-    responses.get(repo_wire_url, json=repo_data)
-    responses.get(pr_wire_url, json=pr_data)
     responses.get(
         files_wire_url,
         json=[{"filename": "page1.yaml", "status": "added"}],
