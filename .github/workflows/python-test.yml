@@ -9,7 +9,7 @@ on:
     - 'scripts/src/pullrequest/*'
     # The tests mock the GitHub API at the wire level, so dependency bumps
     # can break them
-    - 'scripts/requirements.txt'
+    - 'scripts/uv.lock'
 
 jobs:
   enforce:
@@ -22,6 +22,9 @@ jobs:
     - name: Set up Python
       id: setup-python
       uses: ./.github/actions/setup-python
+    - name: Verify lockfile is current
+      working-directory: scripts
+      run: uv lock --check
     - name: Install CI scripts
       uses: ./.github/actions/install-ci-scripts
       with:
