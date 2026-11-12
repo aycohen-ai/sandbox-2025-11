@@ -10,6 +10,7 @@ on:
     # The tests mock the GitHub API at the wire level, so dependency bumps
     # can break them
     - 'scripts/uv.lock'
+    - 'scripts/pyproject.toml'
 
 jobs:
   enforce:
